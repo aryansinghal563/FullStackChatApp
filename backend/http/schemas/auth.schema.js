@@ -10,8 +10,12 @@ export const signupSchema = z.object({
     .string()
     .trim()
     .min(1, "Name cannot be empty")
-    .max(100, "Name too long")
-    .optional(),
+    .max(100, "Name too long"),
+  profilePic: z
+    .string()
+    .url("Profile picture must be a valid URL")
+    .optional()
+    .default(""),
 });
 
 export const signinSchema = z.object({

@@ -1,65 +1,53 @@
-import jwt from "jsonwebtoken";
-import { PrismaClient } from "@prisma/client";
-import bcrypt from "bcrypt";
+import { signup, signin } from "../services/auth.service.js";
+import { signupSchema } from "../schemas/auth.schema.js";
 
-const prisma = new PrismaClient();
-
-function signToken(payload) {
-  return jwt.sign(payload, process.env.JWT_SECRET);
-}
-
-async function signup({ email, name, password }) {
-  const existing = await prisma.user.findUnique({ where: { email } });
-
-  if (existing) {
-    const err = new Error("Email already in use");
-    err.status = 400;
-    throw err;
-  }
-
+export async function postSignup(req, res) {
   try {
-    const salt = await bcrypt.genSalt(10);
-    const passwordHash = await bcrypt.hash(password, salt);
+    const result = signupSchema.safeParse(req.body);
+    if (!result.success) {
+      return res.status(400).json({
+        error: "Signup Validation failed",
+      });
+    }
 
-    const user = await prisma.user.create({
-      data: { email, name, password: passwordHash },
-    });
+    const { email, name, password } = result.data;
+    let data = await signup({ email, name, password });
 
-    const token = signToken({ id: user.id, email: user.email });
-
-    return {
-      user: { id: user.id, email: user.email, name: user.name },
-      token,
-    };
+    res.status(200).json(data);
   } catch (error) {
-    console.log(error);
-    throw error;
+    console.error(error);
+
+    res.status(500).json({
+      error,
+      message: "Signup Failed",
+    });
   }
 }
 
-async function signin({ email, password }) {
-  const user = await prisma.user.findUnique({ where: { email } });
+export async function postSignin(req, res) {
+  try {
+    const result = signupSchema.safeParse(req.body);
 
-  if (!user) {
-    const err = new Error("Invalid credentials");
-    err.status = 401;
-    throw err;
+    if (!result.success) {
+      return res.status(400).json({
+        error: "Signin Validation failed",
+        details: JSON.parse(result.error.message),
+      });
+    }
+
+    const { email, password } = result.data;
+
+    res.status(200).json(data);
+  } catch (error) {
+    res.status(500).json({
+      error,
+      message: "Signin Failed",
+    });
   }
-
-  const ok = await bcrypt.compare(password, user.password);
-
-  if (!ok) {
-    const err = new Error("Invalid credentials");
-    err.status = 401;
-    throw err;
-  }
-
-  const token = signToken({ id: user.id, email: user.email });
-
-  return {
-    user: { id: user.id, email: user.email, name: user.name },
-    token,
-  };
 }
 
-export { signup, signin };
+export async function getMe(req, res) {
+  return res.status(200).json({
+    user: req.user,
+  });
+}
