@@ -21,7 +21,7 @@ export const requireAuth = async (req, res, next) => {
     req.user = user;
     next();
   } catch (err) {
-    console.error(err);
+    console.log(err);
     return res.status(401).json({ error: "Unauthorized" });
   }
 };

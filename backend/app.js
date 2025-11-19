@@ -1,5 +1,6 @@
 import express from "express";
 import dotenv from "dotenv";
+import cors from "cors";
 import { createServer } from "http";
 import { Server } from "socket.io";
 import authRoutes from "./http/routes/auth.routes.js";
@@ -11,7 +12,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(
   cors({
-    origin: env.CORS_ORIGIN,
+    origin: process.env.CORS_ORIGIN,
   })
 );
 

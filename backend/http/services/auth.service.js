@@ -32,7 +32,7 @@ async function signup({ email, name, password }) {
       token,
     };
   } catch (error) {
-    console.log(error);
+    console.error(error);
     throw error;
   }
 }

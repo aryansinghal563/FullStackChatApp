@@ -1,5 +1,5 @@
 import { signup, signin } from "../services/auth.service.js";
-import { signupSchema } from "../schemas/auth.schema.js";
+import { signupSchema, signinSchema } from "../schemas/auth.schema.js";
 
 export async function postSignup(req, res) {
   try {
@@ -7,6 +7,7 @@ export async function postSignup(req, res) {
     if (!result.success) {
       return res.status(400).json({
         error: "Signup Validation failed",
+        details: JSON.parse(result.error.message),
       });
     }
 
@@ -26,7 +27,7 @@ export async function postSignup(req, res) {
 
 export async function postSignin(req, res) {
   try {
-    const result = signupSchema.safeParse(req.body);
+    const result = signinSchema.safeParse(req.body);
 
     if (!result.success) {
       return res.status(400).json({
@@ -36,6 +37,7 @@ export async function postSignin(req, res) {
     }
 
     const { email, password } = result.data;
+    const data = await signin({ email, password });
 
     res.status(200).json(data);
   } catch (error) {
